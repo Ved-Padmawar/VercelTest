@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Tracker</title>
+    <style>
+      body 
+      {
+        font-family: Arial, sans-serif;
+        background-color: #1a1a1a;
+        color: #fff;
+        margin: 0;
+        padding: 0;
+      }
+
+      h1 
+      {
+        text-align: center;
+        margin-top: 20px;
+        color: #007BFF;
+      }
+
+      table 
+      {
+        border-collapse: collapse;
+        width: 65%;
+        margin: 10px auto;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: #2a2a2a;
+      }
+
+      th, td 
+      {
+        border: 1px solid #444;
+        padding: 8px;
+        text-align: center;
+        font-size: 0.9em;
+      }
+
+      th 
+      {
+        background-color: #007BFF;
+        color: #fff;
+      }
+
+      tr:nth-child(even) 
+      {
+        background-color: #3a3a3a;
+      }
+
+      .attendance-checkbox 
+      {
+        width: 16px;
+        height: 16px;
+      }
+
+      button#submitBtn 
+      {
+        display: block;
+        margin: 20px auto;
+        padding: 10px 80px;
+        background-color: #007BFF;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+      }
+
+      button#submitBtn:hover 
+      {
+        background-color: #0056b3;
+        transform: scale(1.05);
+      }
+
+      button#copyBtn 
+      {
+        display: block;
+        margin: 20px auto;
+        padding: 10px 40px;
+        background-color: #007BFF;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+      }
+
+      button#copyBtn:hover 
+      {
+        background-color: #0056b3;
+        transform: scale(1.05);
+      }
+
+      .output-box 
+      {
+        display: none;
+        border: 1px solid #444;
+        padding: 20px;
+        width: 90%;
+        margin: 20px auto;
+        background-color: #2a2a2a;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .result 
+      {
+        color: #007BFF;
+        font-weight: bold;
+        font-size: 1.2em;
+        margin-bottom: 10px;
+      }
+
+      .count 
+      {
+        color: #007BFF;
+        font-weight: bold;
+        font-size: 1.2em;
+        margin-bottom: 10px;
+      }
+
+      .copy-button 
+      {
+        background-color: #007BFF;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        border-radius: 4px;
+        padding: 8px 16px;
+        font-size: 0.9em;
+        margin-top: 10px;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+      }
+
+      .copy-button:hover 
+      {
+        background-color: #0056b3;
+        transform: scale(1.05);
+      }
+
+      @media (max-width: 768px) {
+          body 
+          {
+             font-size: 14px;
+          }
+
+          table 
+          {
+            width: 90%;
+          }
+      }
+
+      @media (max-width: 480px) 
+      {
+          body 
+          {
+            font-size: 12px;
+          }
+
+          h1 
+          {
+            font-size: 24px;
+          }
+
+          table 
+          {
+            width: 100%;
+          }
+
+          th, td
+          {
+            font-size: 0.8em;
+            padding: 6px;
+          }
+
+          button 
+          {
+            font-size: 14px;
+          }
+
+          .copy-button 
+          {
+            font-size: 12px;
+            padding: 6px 12px;
+          }
+      }
+  </style>
+  
+</head>
+<body>
+    <h1>Attendance Tracker</h1>
+    <table id="attendanceTable"> 
+        <tr>
+            <th>Roll Number</th>
+            <th>Name</th>
+            <th>Attendance</th>
+        </tr>
+        {% for row in attendance_data %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td><input type="checkbox" class="attendance-checkbox" value="{{ row[0] }}"></td>
+        </tr>
+        {% endfor %}
+    </table>
+    <button id="submitBtn">Submit Attendance</button>
+
+    <div class="output-box" id="selectedRollNumbers">
+        <p class="result"></p>
+        <p class="count">Students present:</p>
+        <button id="copyBtn" class="copy-button">Copy</button>
+    </div>
+
+    <script>
+      var table = document.getElementById('attendanceTable'); 
+      var originalTableStyle = getComputedStyle(table); 
+      var outputBox = document.querySelector(".output-box");
+      var submitBtn = document.getElementById("submitBtn");
+      var copyBtn = document.getElementById("copyBtn");
+    
+      document.getElementById("submitBtn").addEventListener("click", function () {
+          table.style.display = 'none';
+          table.style.width = originalTableStyle.width; 
+          submitBtn.style.display = 'none';
+          outputBox.style.display = 'block';
+    
+          var checkboxes = document.querySelectorAll('.attendance-checkbox:checked');
+          var attendanceList = Array.from(checkboxes).map(function (checkbox) {
+              var value = checkbox.value;
+              if (value.startsWith("22BD5A12LE")) {
+                  return value.slice(-4);
+              } else {
+                  return value.slice(-2);
+              }
+          });
+    
+          var selectedRollNumbers = attendanceList.join(', ');
+          var resultElement = document.querySelector(".result");
+          resultElement.textContent = "Roll Numbers: " + selectedRollNumbers;
+    
+          var countElement = document.querySelector(".count");
+          countElement.textContent = "Students present: " + attendanceList.length;
+    
+          copyBtn.setAttribute("data-clipboard-text", "Roll Numbers: " + selectedRollNumbers + "\n" + "Students present: " + attendanceList.length);
+    
+          copyBtn.textContent = "Copied!";
+          copyBtn.classList.add("copied-animation");
+    
+          window.location.hash = 'output';
+      });
+    
+      document.getElementById("copyBtn").addEventListener("click", function (event) {
+          var copiedText = this.getAttribute("data-clipboard-text");
+    
+          var tempInput = document.createElement("textarea");
+          tempInput.value = copiedText;
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand("copy");
+          document.body.removeChild(tempInput);
+      });
+    
+      window.addEventListener("hashchange", function () {
+          if (window.location.hash === '#output') {
+              table.style.display = 'none';
+              table.style.width = originalTableStyle.width;
+              submitBtn.style.display = 'none';
+              outputBox.style.display = 'block';
+    
+              copyBtn.textContent = "Copy";
+              copyBtn.classList.remove("copied-animation");
+          } else {
+              table.style.display = 'table';
+              table.style.width = originalTableStyle.width;
+              submitBtn.style.display = 'block';
+              outputBox.style.display = 'none';
+          }
+      });
+    </script>
+    
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Tracker</title>
+
+    <!-- Include Tailwind CSS in dark mode -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind-dark.min.css" rel="stylesheet">
+    <style>
+        .compact-card {
+            min-height: auto;
+            padding: 1rem;
+        }
+        .output-box {
+        padding: 20px;
+        border-radius: 15px;
+        background: #333;
+        box-shadow: 0px 10px 30px -5px rgba(0, 0, 0, 0.4);
+        transition: box-shadow 0.5s;
+        color: #fff;
+        font-family: 'Helvetica Neue', sans-serif;
+        text-align: center;
+        }
+
+        .output-box:hover {
+            box-shadow: 0px 30px 100px -10px rgba(0, 0, 0, 0.6);
+        }
+
+        .result {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #66c7ff;
+            text-shadow: 2px 2px #000;
+        }
+
+        .result-content {
+            font-size: 1.5rem;
+            color: #a0a0a0;
+            text-transform: uppercase;
+        }
+
+        .count {
+            font-size: 1.25rem;
+            color: #ccc;
+            letter-spacing: .1em;
+        }
+
+    </style>
+</head>
+<body class="bg-black text-white">
+    <div class="container mx-auto px-4 mt-5">
+        <h1 class="text-center text-blue-500 text-3xl font-bold mb-5">Attendance Tracker</h1>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="cardView">
+            {% for row in attendance_data %}
+            <div class="rounded overflow-hidden shadow-lg bg-white dark:bg-gray-800 compact-card cursor-pointer select-none attendance-card" data-roll="{{ row[0] }}">
+                <h2 class="font-bold text-lg mb-1 text-gray-700">Roll Number: {{ row[0] }}</h2>
+                <p class="text-base text-gray-700 dark:text-gray-300">Name: {{ row[1] }}</p>
+                <div class="mt-2">
+                    <input type="checkbox" id="attendance-{{ row[0] }}" value="{{ row[0] }}" class="form-checkbox h-4 w-4 text-blue-600 hidden"><span class="ml-2 text-gray-700 dark:text-gray-300"></span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <form id="attendanceForm" class="mt-4">
+            <button type="button" class="bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover-bg-blue-500 text-white font-bold py-2 px-4 rounded" id="submitBtn">Submit Attendance</button>
+        </form>
+
+        <div class="output-box mt-4 hidden" id="outputView">
+            <p class="result text-lg text-blue-500 dark:text-blue-400"></p>
+            <p class="result-content text-xl text-gray-700 dark:text-gray-300" id="resultContent"></p>
+            <p class="count text-base text-gray-700 dark:text-gray-300" id="countText"></p>
+            <button class="bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover-bg-blue-500 text-white font-bold py-2 px-4 rounded copy-button hidden" id="copyBtn">Copy</button>
+        </div>
+    </div>
+
+    <script>
+        const attendanceCards = document.querySelectorAll('.attendance-card');
+        const submitBtn = document.getElementById("submitBtn");
+        const copyBtn = document.getElementById("copyBtn");
+        const cardView = document.getElementById("cardView");
+        const outputView = document.getElementById("outputView");
+        const resultContent = document.getElementById("resultContent");
+        const countText = document.getElementById("countText");
+
+        attendanceCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const checkbox = card.querySelector('input[type=checkbox]');
+                checkbox.checked = !checkbox.checked;
+
+                card.classList.toggle('bg-blue-500');
+                card.classList.toggle('dark:bg-blue-800');
+                card.classList.toggle('text-white');
+                card.classList.toggle('dark:text-gray-300');
+            });
+        });
+
+        function switchToOutputView() {
+            outputView.classList.remove("hidden");
+            copyBtn.classList.remove("hidden");
+
+            cardView.style.display = 'none';
+            submitBtn.style.display = 'none';
+
+            window.location.hash = 'output';
+        }
+
+        function switchToCardView() {
+            outputView.classList.add("hidden");
+            copyBtn.classList.add("hidden");
+
+            cardView.style.display = 'grid';
+            submitBtn.style.display = 'block';
+
+            window.location.hash = 'cards';
+        }
+
+        submitBtn.addEventListener("click", function () {
+            var selectedRollNumbers = [];
+            attendanceCards.forEach(card => {
+                const checkbox = card.querySelector('input[type=checkbox]');
+                if (checkbox.checked) {
+                    var value = checkbox.value;
+                    if (value.startsWith("22BD5A12LE")) {
+                        selectedRollNumbers.push(value.slice(-4));
+                    } else {
+                        selectedRollNumbers.push(value.slice(-2));
+                    }
+                }
+            });
+
+            const count = selectedRollNumbers.length;
+            const result = selectedRollNumbers.join(', ');
+
+            resultContent.textContent = 'Roll Numbers: ' + result;
+
+            countText.textContent = `Students Present: ${count}`;
+
+            switchToOutputView();
+        });
+
+        copyBtn.addEventListener("click", function () {
+            var rollNumbers = resultContent.textContent;
+            var count = countText.textContent;
+            var copiedText = `${rollNumbers}\n${count}`;
+
+            var tempInput = document.createElement("textarea");
+            tempInput.value = copiedText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+
+            copyBtn.textContent = "Copied!";
+            copyBtn.classList.add("copied-animation");
+        });
+
+        window.addEventListener("hashchange", function () {
+            if (window.location.hash === '#output') {
+                switchToOutputView();
+            } else {
+                switchToCardView();
+            }
+        });
+
+        window.addEventListener("load", function () {
+            if (window.location.hash === '#output') {
+                switchToOutputView();
+            } else if (window.location.hash !== '') {
+                // If the hash is not empty (e.g., #output), reload the entire page
+                window.location.href = window.location.href.split("#")[0];
+            }
+        });
+    </script>
+</body>
+</html>
